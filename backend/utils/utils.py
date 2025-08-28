@@ -48,7 +48,7 @@ def getNPortFile(cik, accession):
     accession_nodash = accession.replace("-", "")
 
     if os.path.exists(f'cache/{cik}-{accession_nodash}.xml'):
-        logging.info(f"Loading from {f"cache/{cik}-{accession_nodash}.xml"} cache")
+        logging.info(f"Loading from cache/{cik}-{accession_nodash}.xml cache")
         return open(f'cache/{cik}-{accession_nodash}.xml', 'rb').read()
         
     request_url = f"https://www.sec.gov/Archives/edgar/data/{int(cik)}/{accession_nodash}/primary_doc.xml"
