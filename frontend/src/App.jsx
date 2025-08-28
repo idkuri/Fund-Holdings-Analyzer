@@ -20,8 +20,6 @@ function App() {
   const [columnFilters, setColumnFilters] = useState([])
   const [mode, setMode] = useState("table") // "table" or "chart"
 
-
-  alert(API_URL)
   const fetchData = async () => {
     if (!cik) return
     setLoading(true)
