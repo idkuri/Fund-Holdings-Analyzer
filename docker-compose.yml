@@ -1,0 +1,15 @@
+version: '3.9'
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+  frontend:
+    build: ./frontend
+    ports:
+      - "3500:80"
+    environment:
+      - VITE_API_URL=http://backend:5000
+    restart: unless-stopped

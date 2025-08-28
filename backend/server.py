@@ -13,8 +13,7 @@ logging.basicConfig(
 )
 
 app = Flask(__name__)
-CORS(app)
-CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173"}})
+CORS(app, resources={r"/api/*": {"origins": "http://localhost:3500"}})
 
 @app.route("/")
 def llo_world():
@@ -49,4 +48,4 @@ def get_cik(cik):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000)

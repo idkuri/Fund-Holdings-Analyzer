@@ -8,6 +8,7 @@ import {
 } from '@tanstack/react-table'
 import DoughnutChart from './components/DoughnutChart'
 import './App.css'
+const API_URL = import.meta.env.VITE_API_URL;
 
 function App() {
   const [cik, setCik] = useState("")
@@ -19,6 +20,8 @@ function App() {
   const [columnFilters, setColumnFilters] = useState([])
   const [mode, setMode] = useState("table") // "table" or "chart"
 
+
+  alert(API_URL)
   const fetchData = async () => {
     if (!cik) return
     setLoading(true)
@@ -26,7 +29,7 @@ function App() {
     setFundName("")
     setHoldings([])
     try {
-      const resp = await fetch(`http://localhost:5000/api/cik/${cik}`)
+      const resp = await fetch(`${API_URL}/api/cik/${cik}`)
       const data = await resp.json()
       if (!resp.ok) {
         setError(data.error || "Failed to fetch data")
