@@ -225,12 +225,15 @@ function App() {
                       {header.column.getCanFilter() && (header.column.id == "units" || header.column.id == "value") ? (
                         <div className='flex flex-row gap-5 items-center justify-center'>
                           <input
-                            type="number"
+                            type="text"
+                            inputMode="numeric"
+                            pattern="\d*"
                             value={header.column.getFilterValue()?.[0] ?? ''}
                             placeholder={`Min`}
                             onChange={e => {
+                              const value = e.target.value.replace(/\D/g, '');
                               const max = header.column.getFilterValue()?.[1] || ''
-                              header.column.setFilterValue([e.target.value ? Number(e.target.value) : null, max])
+                              header.column.setFilterValue([e.target.value ? Number(value) : null, max])
                               }
                             } 
                             className="border border-gray-300 rounded p-1 text-sm"
@@ -238,14 +241,16 @@ function App() {
                           />
 
                           <input
-                            type="number"
+                            type="text"
+                            inputMode="numeric"
+                            pattern="\d*"
                             value={header.column.getFilterValue()?.[1] ?? ''}
-                            placeholder={`Max`}
+                            placeholder="Max"
                             onChange={e => {
-                              const min = header.column.getFilterValue()?.[0] || ''
-                              header.column.setFilterValue([min, e.target.value ? Number(e.target.value) : null])
-                              }
-                            }                            
+                              const value = e.target.value.replace(/\D/g, '');
+                              const min = header.column.getFilterValue()?.[0] || '';
+                              header.column.setFilterValue([min, value ? Number(value) : null]);
+                            }}
                             className="border border-gray-300 rounded p-1 text-sm"
                             onClick={e => e.stopPropagation()}
                           />
