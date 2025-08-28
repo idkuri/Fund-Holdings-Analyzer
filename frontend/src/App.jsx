@@ -6,6 +6,7 @@ import {
   getFilteredRowModel,
   flexRender
 } from '@tanstack/react-table'
+import DoughnutChart from './components/DoughnutChart'
 import './App.css'
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
   const [sorting, setSorting] = useState([])
   const [fundName, setFundName] = useState("")
   const [columnFilters, setColumnFilters] = useState([])
+  const [mode, setMode] = useState("table") // "table" or "chart"
 
   const fetchData = async () => {
     if (!cik) return
@@ -56,10 +58,16 @@ function App() {
 
 
   const formatNumber = (value) => {
-    if (value == null || value === '') return ''
-    const num = parseFloat(value)
-    return isNaN(num) ? value : num.toLocaleString()
-  }
+    if (value == null || value === '') return '';
+    const num = parseFloat(value);
+    if (isNaN(num)) return value;
+
+    return num.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
 
   const columns = [
     { 
@@ -93,7 +101,7 @@ function App() {
         const value = getValue()
         const currency = row.original.currency
         const symbol = getCurrencySymbol(currency)
-        const formattedValue = formatNumber(value)
+        const formattedValue = formatNumber(Number(value));
         return formattedValue ? `${symbol} ${formattedValue}` : ''
       }
     },
@@ -178,6 +186,16 @@ function App() {
       <hr className='w-[75vw] border-t border-gray-300 my-4' />
       {fundName && <h2 className='text-2xl font-bold'>Fund Name: {fundName}</h2>}
       {holdings.length > 0 && (
+        <div className='flex flex-row justify-end w-[75vw] min-w-[500px] mb-4 gap-2'>
+          <button className={`${mode == "table" ? "bg-blue-950 text-white": ""} w-25 h-10 outline-1 outline-black rounded-md hover:cursor-pointer`} onClick={() => {setMode("table")}}>Table View</button>
+          <button className={`${mode == "pie" ? "bg-blue-950 text-white": ""} w-25 h-10 outline-1 outline-black rounded-md hover:cursor-pointer`} onClick={() => {setMode("pie")}}>Pie Chart</button>
+        </div>
+      )}
+      {holdings.length > 0 && mode == "pie" && (
+        <DoughnutChart holdings={holdings} getCurrencySymbol={getCurrencySymbol} formatNumber
+        />
+      )}
+      {holdings.length > 0 && mode == "table" && (
         <div className='w-[75vw] mt-6 border border-gray-300 rounded-lg items-center justify-center p-4 overflow-x-auto'>
           <table className='table-auto w-full border-collapse '>
             <thead className='bg-gray-100'>
@@ -216,14 +234,14 @@ function App() {
                           type="text"
                           value={header.column.getFilterValue() || ''}
                           onChange={e => header.column.setFilterValue(e.target.value)}
-                          placeholder={`Search by cusip...`}
+                          placeholder={`Search by CUSIP...`}
                           className="border border-gray-300 rounded p-1 text-sm"
                           onClick={e => e.stopPropagation()}
                         />
                       ) : null}
 
                       {header.column.getCanFilter() && (header.column.id == "units" || header.column.id == "value") ? (
-                        <div className='flex flex-row gap-5 items-center justify-center'>
+                        <div className='flex flex-row items-center justify-between'>
                           <input
                             type="text"
                             inputMode="numeric"
