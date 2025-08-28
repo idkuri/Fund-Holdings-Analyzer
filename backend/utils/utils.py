@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
+import logging
 
 def getSubmissions(cik):
     assert cik.isdigit(), "CIK must be numeric"
@@ -17,6 +18,8 @@ def getSortedNPortFilings(cik):
     assert cik.isdigit(), "CIK must be numeric"
     assert len(cik) <= 10, "CIK must be at most 10 digits"
     submissions = getSubmissions(cik)
+    name = submissions['name']
+    logging.info("Fund name for CIK %s: %s", cik, name)
     forms = submissions['filings']['recent']['form']
     accessions = submissions['filings']['recent']['accessionNumber']
     dates = submissions['filings']['recent']['filingDate']
@@ -33,7 +36,7 @@ def getSortedNPortFilings(cik):
         reverse=True
     )
 
-    return nport_filings_sorted
+    return {"name": name, "data":nport_filings_sorted}
 
 def getNPortFile(cik, accession):
     assert cik.isdigit(), "CIK must be numeric"
@@ -44,11 +47,13 @@ def getNPortFile(cik, accession):
     }
     accession_nodash = accession.replace("-", "")
     request_url = f"https://www.sec.gov/Archives/edgar/data/{int(cik)}/{accession_nodash}/primary_doc.xml"
+    logging.info("Requesting NPORT-P file from URL: %s", request_url)
     n_port_file = requests.get(request_url, headers=HEADERS)
     return n_port_file.content
 
 def getHoldingsfromXML(content):
     soup = BeautifulSoup(content,'xml')
+    open('output.xml', 'wb').write(content)
     holdings = soup.find('invstOrSecs')
     holdings_dict = {}
     for i, holding in enumerate(holdings.find_all('invstOrSec')):
@@ -56,12 +61,10 @@ def getHoldingsfromXML(content):
         cusip = holding.find('cusip').text
         balance = holding.find('balance').text
         value = holding.find("valUSD").text
-        currency = holding.find("curCd").text
         holdings_dict[i] = {
             'title': title,
             'cusip': cusip,
             'units': float(balance),
             'value': float(value),
-            'currency': currency
         }
     return holdings_dict

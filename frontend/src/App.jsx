@@ -188,10 +188,10 @@ function App() {
       {holdings.length > 0 && (
         <div className='flex flex-row justify-end w-[75vw] min-w-[500px] mb-4 gap-2'>
           <button className={`${mode == "table" ? "bg-blue-950 text-white": ""} w-25 h-10 outline-1 outline-black rounded-md hover:cursor-pointer`} onClick={() => {setMode("table")}}>Table View</button>
-          <button className={`${mode == "pie" ? "bg-blue-950 text-white": ""} w-25 h-10 outline-1 outline-black rounded-md hover:cursor-pointer`} onClick={() => {setMode("pie")}}>Pie Chart</button>
+          <button className={`${mode == "chart" ? "bg-blue-950 text-white": ""} w-25 h-10 outline-1 outline-black rounded-md hover:cursor-pointer`} onClick={() => {setMode("chart")}}>Chart View</button>
         </div>
       )}
-      {holdings.length > 0 && mode == "pie" && (
+      {holdings.length > 0 && mode == "chart" && (
         <DoughnutChart holdings={holdings} getCurrencySymbol={getCurrencySymbol} formatNumber
         />
       )}

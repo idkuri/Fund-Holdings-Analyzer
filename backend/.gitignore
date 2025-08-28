@@ -38,3 +38,12 @@ migrations/
 
 # Logs
 *.log
+
+# xml files
+*.xml
+
+# txt files
+*.txt
+
+# JSON files
+*.json
