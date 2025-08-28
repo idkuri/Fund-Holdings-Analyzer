@@ -6,6 +6,9 @@ import logging
 from flask_cors import CORS
 import os
 import atexit
+import html
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 # Configure logging
 logging.basicConfig(
@@ -15,7 +18,19 @@ logging.basicConfig(
 )
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": {"http://localhost:3500", "https://prospect.idkuri.com", "http://localhost:5173"}}})
+
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["200 per day", "50 per hour"]  # global default
+)
+
+CORS(app, resources={r"/*": {"origins": [
+    "http://localhost:3500",
+    "http://localhost:5173",
+    "https://prospect.idkuri.com"
+]}})
+
 
 if not os.path.exists("cache"):
     os.mkdir("cache")
@@ -25,8 +40,10 @@ def hello_world():
     return "<p>You have reached idkuri API for Prospect Take Home Assignment</p>"
 
 @app.route("/cik/<cik>", methods=['GET'])
+@limiter.limit ("50 per minute")
 def get_cik(cik):
     try:
+        cik = html.escape(cik) # Escaped HTML for security and sanitizes input
         cik = cik.zfill(10)
         logging.info("Getting NPORT-P filings for CIK: %s", cik)
         fetch_data = getSortedNPortFilings(cik)

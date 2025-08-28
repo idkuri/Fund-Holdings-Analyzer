@@ -27,7 +27,7 @@ function App() {
     setFundName("")
     setHoldings([])
     try {
-      const resp = await fetch(`${API_URL}/api/cik/${cik}`)
+      const resp = await fetch(`${API_URL}/cik/${cik}`)
       const data = await resp.json()
       if (!resp.ok) {
         setError(data.error || "Failed to fetch data")
@@ -49,7 +49,7 @@ function App() {
 
 
 
-  // Currency symbol mapping
+  // Currency symbol mapping for in case of other currency requirements
   const getCurrencySymbol = (currency) => {
     const symbols = {
       'USD': '$',
