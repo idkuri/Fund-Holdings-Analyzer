@@ -6,7 +6,6 @@ import os
 def getSubmissions(cik):
     assert cik.isdigit(), "CIK must be numeric"
     assert len(cik) <= 10, "CIK must be at most 10 digits"
-    cik = cik.zfill(10)
     request_url = f"https://data.sec.gov/submissions/CIK{cik}.json"
     HEADERS = {
         "User-Agent": "MyApp/1.0 acaoy2@gmail.com"
@@ -57,7 +56,7 @@ def getNPortFile(cik, accession):
     n_port_file = requests.get(request_url, headers=HEADERS)
 
     files = [os.path.join("cache", f) for f in os.listdir("cache") if os.path.isfile(os.path.join("cache", f))]
-    if len(files) > 1:
+    if len(files) >= 5:
         print("Removing oldest cache file")
         removeOldestCacheFile()
     open(f'cache/{cik}-{accession_nodash}.xml', 'wb').write(n_port_file.content)

@@ -4,6 +4,8 @@ from flask import Flask, request, jsonify, abort
 from utils.utils import getSortedNPortFilings, getNPortFile, getHoldingsfromXML
 import logging
 from flask_cors import CORS
+import os
+import atexit
 
 # Configure logging
 logging.basicConfig(
@@ -15,13 +17,17 @@ logging.basicConfig(
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": {"http://localhost:3500", "https://prospect.idkuri.com", "http://localhost:5173"}}})
 
+if not os.path.exists("cache"):
+    os.mkdir("cache")
+
 @app.route("/")
-def llo_world():
-    return "<p>Hello, World!</p>"
+def hello_world():
+    return "<p>You have reached idkuri API for Prospect Take Home Assignment</p>"
 
 @app.route("/api/cik/<cik>", methods=['GET'])
 def get_cik(cik):
     try:
+        cik = cik.zfill(10)
         logging.info("Getting NPORT-P filings for CIK: %s", cik)
         fetch_data = getSortedNPortFilings(cik)
         fund_name = fetch_data["name"]
@@ -46,6 +52,21 @@ def get_cik(cik):
         logging.error("Error occurred while processing CIK %s: %s", cik, e)
         return jsonify({"error": "An unexpected error occurred."}), 500
 
+@atexit.register
+def delete_cache():
+    cache_dir = "cache"
+    if os.path.exists(cache_dir):
+        for filename in os.listdir(cache_dir):
+            file_path = os.path.join(cache_dir, filename)
+            try:
+                if os.path.isfile(file_path):
+                    os.remove(file_path)
+                    logging.info(f"Deleted cache file: {file_path}")
+            except Exception as e:
+                logging.error(f"Error deleting file {file_path}: {e}")
+        os.rmdir(cache_dir)
+
+atexit.register(logging.shutdown)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
