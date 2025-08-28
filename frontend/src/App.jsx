@@ -19,7 +19,7 @@ function App() {
   const [fundName, setFundName] = useState("")
   const [columnFilters, setColumnFilters] = useState([])
   const [mode, setMode] = useState("table") // "table" or "chart"
-
+  
   const fetchData = async () => {
     if (!cik) return
     setLoading(true)

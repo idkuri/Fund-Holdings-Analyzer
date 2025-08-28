@@ -13,7 +13,7 @@ logging.basicConfig(
 )
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "http://localhost:3500"}})
+CORS(app, resources={r"/api/*": {"origins": {"http://localhost:3500", "https://prospect.idkuri.com", "http://localhost:5173"}}})
 
 @app.route("/")
 def llo_world():
