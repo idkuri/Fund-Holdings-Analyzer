@@ -24,7 +24,7 @@ if not os.path.exists("cache"):
 def hello_world():
     return "<p>You have reached idkuri API for Prospect Take Home Assignment</p>"
 
-@app.route("/api/cik/<cik>", methods=['GET'])
+@app.route("/cik/<cik>", methods=['GET'])
 def get_cik(cik):
     try:
         cik = cik.zfill(10)
