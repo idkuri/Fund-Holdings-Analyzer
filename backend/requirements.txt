@@ -3,3 +3,4 @@ flask
 requests
 lxml
 flask-cors
+flask_limiter
