@@ -22,7 +22,6 @@ def getSortedNPortFilings(cik):
     assert cik.isdigit(), "CIK must be numeric"
     assert len(cik) <= 10, "CIK must be at most 10 digits"
     submissions = getSubmissions(cik)
-    print(submissions)
     name = submissions['name']
     logging.info("Fund name for CIK %s: %s", cik, name)
     forms = submissions['filings']['recent']['form']
