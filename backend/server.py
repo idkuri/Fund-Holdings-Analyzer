@@ -9,6 +9,7 @@ import atexit
 import html
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from werkzeug.exceptions import HTTPException
 
 # Configure logging
 logging.basicConfig(
@@ -62,6 +63,9 @@ def get_cik(cik):
 
         return jsonify({"fund_name": fund_name, "data":list(holdings.values())})
     
+    except HTTPException as he:
+        logging.error("HTTP error: %s", he.description)
+        return jsonify({"error": "CIK not found. Please enter a valid CIK"}), 404
     except AssertionError:
         logging.error("Invalid CIK format for CIK %s", cik)
         return jsonify({"error": "Invalid CIK format. Please enter a numeric CIK."}), 400

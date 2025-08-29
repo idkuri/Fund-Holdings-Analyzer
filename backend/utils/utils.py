@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import logging
 import os
+from flask import abort
 
 def getSubmissions(cik):
     assert cik.isdigit(), "CIK must be numeric"
@@ -11,13 +12,17 @@ def getSubmissions(cik):
         "User-Agent": "MyApp/1.0 acaoy2@gmail.com"
     }
     resp = requests.get(request_url, headers=HEADERS)
+    if resp.status_code != 200:
+        abort(404, description="CIK not found")
     resp.raise_for_status()
+
     return resp.json()
 
 def getSortedNPortFilings(cik):
     assert cik.isdigit(), "CIK must be numeric"
     assert len(cik) <= 10, "CIK must be at most 10 digits"
     submissions = getSubmissions(cik)
+    print(submissions)
     name = submissions['name']
     logging.info("Fund name for CIK %s: %s", cik, name)
     forms = submissions['filings']['recent']['form']
