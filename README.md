@@ -22,7 +22,7 @@ pytest -v test.py
 
 ---
 ## Logs
-Logs are saved in app.logs for debugging purposes
+Logs are saved in app.log for debugging purposes
 
 ## Development Checklist
 
@@ -41,3 +41,4 @@ Logs are saved in app.logs for debugging purposes
 - [x] **Containerization**
 
 - [x] **Security Enhancements**
+
