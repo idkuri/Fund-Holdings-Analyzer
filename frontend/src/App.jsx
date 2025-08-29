@@ -157,13 +157,13 @@ function App() {
         <h1 className='text-2xl font-bold mb-4 text-center text-black'>
           Analyze Fund Holdings from N-Port Filings
         </h1>
-        <p>
+        <p className='text-center'>
           Enter a fund's Central Index Key (CIK) to retrieve and analyze its most recent N-Port filing data, including detailed holdings information.
         </p>
       </div>
 
       {/* INPUT BLOCK */}
-      <div className='rounded-2xl outline-1 outline-black flex flex-col w-[30vw] min-w-[500px] min-h-[250px] bg-card items-center justify-center'>
+      <div className='rounded-2xl outline-1 outline-black flex flex-col w-[30vw] min-w-[350px] md:w-[500px] min-h-[250px] bg-card items-center justify-center'>
         <h4 className='text-2xl font-semibold'>Enter Fund CIK</h4>
         <div className='flex flex-col w-full p-5'>
           <label htmlFor="cik">Central Index Key (CIK)</label>
@@ -185,7 +185,7 @@ function App() {
       </div>
       {/* TABLE BLOCK */}
       <hr className='w-[75vw] border-t border-gray-300 my-4' />
-      {fundName && <h2 className='text-2xl font-bold'>Fund Name: {fundName}</h2>}
+      {fundName && <h2 className='text-2xl font-bold text-center'>Fund Name: {fundName}</h2>}
       {holdings.length > 0 && (
         <div className='flex flex-row justify-center md:justify-end w-[75vw] min-w-[500px] mb-4 gap-2'>
           <button className={`${mode == "table" ? "bg-blue-950 text-white": ""} w-25 h-10 outline-1 outline-black rounded-md hover:cursor-pointer`} onClick={() => {setMode("table")}}>Table View</button>
