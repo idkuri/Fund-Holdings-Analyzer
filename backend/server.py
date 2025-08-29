@@ -37,7 +37,7 @@ if not os.path.exists("cache"):
 
 @app.route("/")
 def hello_world():
-    return "<p>You have reached idkuri API for Prospect Take Home Assignment</p>"
+    return "<p>You have reached API for Prospect Take Home Assignment</p>"
 
 @app.route("/cik/<cik>", methods=['GET'])
 @limiter.limit ("50 per minute")
