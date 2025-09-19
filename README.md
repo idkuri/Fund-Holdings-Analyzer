@@ -1,4 +1,4 @@
-﻿# Prospect Take Home
+﻿# Fund-Holdings-Analyzer
 
 ## Environment Setup
 1. Populate `.env` files before running the project:
@@ -41,4 +41,5 @@ Logs are saved in app.log for debugging purposes
 - [x] **Containerization**
 
 - [x] **Security Enhancements**
+
 
