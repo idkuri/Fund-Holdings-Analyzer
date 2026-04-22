@@ -1,0 +1,12 @@
+/** Avoid page-level horizontal scroll (100vw vs scrollbar; wide min-width children). */
+html {
+  overflow-x: hidden;
+}
+
+button:not(:disabled) {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}

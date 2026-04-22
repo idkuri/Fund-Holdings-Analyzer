@@ -1,7 +1,8 @@
+import re
 import requests
 from bs4 import BeautifulSoup
 from flask import Flask, request, jsonify, abort
-from utils.utils import getSortedNPortFilings, getNPortFile, getHoldingsfromXML
+from utils.utils import getSortedNPortFilings, getNPortFile, getHoldingsfromXML, getSubmissions
 import logging
 from flask_cors import CORS
 import os
@@ -72,6 +73,55 @@ def get_cik(cik):
     except Exception as e:
         logging.error("Error occurred while processing CIK %s: %s", cik, e)
         return jsonify({"error": "An unexpected error occurred."}), 500
+
+@app.route("/ticker/<cik>", methods=['GET'])
+@limiter.limit("50 per minute")
+def get_ticker(cik):
+    try:
+        cik = html.escape(cik)
+        cik = cik.zfill(10)
+        submissions = getSubmissions(cik)
+        tickers = submissions.get('tickers', [])
+        return jsonify({"tickers": tickers})
+    except HTTPException as he:
+        logging.error("HTTP error fetching ticker for CIK %s: %s", cik, he.description)
+        return jsonify({"error": "CIK not found"}), 404
+    except AssertionError:
+        return jsonify({"error": "Invalid CIK format"}), 400
+    except Exception as e:
+        logging.error("Error fetching ticker for CIK %s: %s", cik, e)
+        return jsonify({"error": "An unexpected error occurred"}), 500
+
+@app.route("/chart/<ticker>", methods=['GET'])
+@limiter.limit("30 per minute")
+def get_chart_data(ticker):
+    try:
+        ticker = html.escape(ticker).upper()
+        assert re.match(r'^[A-Z0-9.\-\^=]{1,20}$', ticker), "Invalid ticker format"
+
+        range_ = request.args.get('range', '1y')
+        interval = request.args.get('interval', '1d')
+        valid_ranges = {'1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y', 'ytd', 'max'}
+        valid_intervals = {'1m', '2m', '5m', '15m', '30m', '60m', '90m', '1h', '1d', '5d', '1wk', '1mo', '3mo'}
+        assert range_ in valid_ranges, "Invalid range parameter"
+        assert interval in valid_intervals, "Invalid interval parameter"
+
+        url = f"https://query1.finance.yahoo.com/v8/finance/chart/{ticker}"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "application/json",
+            "Accept-Language": "en-US,en;q=0.9",
+        }
+        resp = requests.get(url, headers=headers, params={"range": range_, "interval": interval}, timeout=10)
+        resp.raise_for_status()
+        return jsonify(resp.json())
+    except AssertionError as e:
+        return jsonify({"error": str(e)}), 400
+    except requests.exceptions.HTTPError:
+        return jsonify({"error": "Ticker not found or Yahoo Finance unavailable"}), 502
+    except Exception as e:
+        logging.error("Error fetching chart data for ticker %s: %s", ticker, e)
+        return jsonify({"error": "Failed to fetch chart data"}), 500
 
 @atexit.register
 def delete_cache():

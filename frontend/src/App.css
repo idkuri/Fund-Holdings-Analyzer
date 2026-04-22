@@ -1,1 +1,237 @@
 @import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/**
+ * `md` = 920px: below this width, session layout uses stacked “mobile” chrome (sidebar full width on top, etc.).
+ * Aligns with `--breakpoint-md` (57.5rem).
+ */
+@theme {
+  --breakpoint-md: 57.5rem;
+}
+
+/** Theme timing token — `.ease-theme` + scrollbars both use these for color changes. */
+:root {
+  --theme-transition-duration: 180ms;
+  --theme-transition-ease: cubic-bezier(0.27, 0.69, 0.12, 0.07);
+}
+
+/** Warm beige light theme — base “goose-down”, lifted surfaces mixed for depth */
+:root:not(.dark) {
+  --goose-down: oklch(97.74% 0.02 97.52);
+
+  --lm-page: var(--goose-down);
+  --lm-card: color-mix(in oklch, var(--goose-down), oklch(82% 0.035 96) 14%);
+  --lm-row: color-mix(in oklch, var(--goose-down), oklch(76% 0.04 96) 20%);
+  --lm-raised: color-mix(in oklch, var(--goose-down), oklch(68% 0.035 95) 28%);
+  --lm-track: color-mix(in oklch, var(--goose-down), oklch(62% 0.03 95) 34%);
+  --lm-toggle: color-mix(in oklch, var(--goose-down), oklch(70% 0.035 96) 26%);
+  --lm-input: var(--goose-down);
+  --lm-border: color-mix(in oklch, var(--goose-down), oklch(52% 0.04 95) 42%);
+}
+
+/**
+ * N-Port hero (light): surfaces from --goose-down and lm-* (all mixed from it in :root).
+ */
+html:not(.dark) .nport-hero {
+  color: color-mix(in oklch, oklch(38% 0.04 60), var(--goose-down) 14%);
+  background: linear-gradient(150deg, var(--goose-down) 0%, var(--lm-card) 100%);
+  border: 1px solid var(--lm-border);
+  box-shadow: 0 4px 20px oklch(0% 0 0 / 0.1);
+}
+html:not(.dark) .nport-hero h2 {
+  color: color-mix(in oklch, oklch(24% 0.045 52), var(--goose-down) 8%);
+}
+html:not(.dark) .nport-hero p {
+  color: color-mix(in oklch, oklch(40% 0.04 60), var(--goose-down) 18%);
+}
+html.dark .nport-hero {
+  color: oklch(88% 0.04 100);
+  background: linear-gradient(150deg, oklch(20% 0.05 280) 0%, oklch(14% 0.05 290) 100%);
+  border: 1px solid oklch(0.5 0.1 255 / 0.22);
+  box-shadow: 0 8px 28px oklch(0% 0 0 / 0.42);
+}
+html.dark .nport-hero h2 {
+  color: oklch(94% 0.04 200);
+}
+html.dark .nport-hero p {
+  color: oklch(69% 0.03 265);
+}
+
+@layer utilities {
+  /** Smooth theme toggle: interpolates solid colors & shadows (gradients may still swap in one frame). */
+  .ease-theme {
+    transition-property:
+      background-color, border-color, color, fill, stroke, box-shadow, outline-color,
+      text-decoration-color;
+    transition-duration: var(--theme-transition-duration);
+    transition-timing-function: var(--theme-transition-ease);
+  }
+}
+
+/**
+ * Scrollbars — explicit oklch() light/dark (same format both sides; avoids rgb↔beige hue flash).
+ * Same duration/ease as `.ease-theme` so gutters don’t snap ahead of the rest of the UI.
+ */
+.holdings-table-scroll {
+  scrollbar-width: thin;
+  /** Firefox: thumb then track */
+  scrollbar-color: oklch(78% 0.028 96) oklch(94.2% 0.02 97);
+  transition: scrollbar-color var(--theme-transition-duration) var(--theme-transition-ease);
+}
+
+.holdings-table-scroll::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.holdings-table-scroll::-webkit-scrollbar-track,
+.holdings-table-scroll::-webkit-scrollbar-thumb,
+.holdings-table-scroll::-webkit-scrollbar-corner {
+  transition: background-color var(--theme-transition-duration) var(--theme-transition-ease);
+}
+
+.holdings-table-scroll::-webkit-scrollbar-track {
+  background-color: oklch(94.2% 0.02 97);
+  border-radius: 6px;
+}
+
+.holdings-table-scroll::-webkit-scrollbar-thumb {
+  background-color: oklch(78% 0.028 96);
+  border-radius: 6px;
+}
+
+.holdings-table-scroll::-webkit-scrollbar-corner {
+  background-color: oklch(94.2% 0.02 97);
+}
+
+.dark .holdings-table-scroll {
+  scrollbar-color: oklch(48% 0.018 264) oklch(21% 0.014 264);
+}
+
+.dark .holdings-table-scroll::-webkit-scrollbar-track {
+  background-color: oklch(21% 0.014 264);
+}
+
+.dark .holdings-table-scroll::-webkit-scrollbar-thumb {
+  background-color: oklch(48% 0.018 264);
+}
+
+.dark .holdings-table-scroll::-webkit-scrollbar-corner {
+  background-color: oklch(21% 0.014 264);
+}
+
+/** Allocation list — row strip tone (light) vs gray-800 (dark). */
+.allocation-list-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: oklch(78% 0.028 96) oklch(92.5% 0.024 96);
+  transition: scrollbar-color var(--theme-transition-duration) var(--theme-transition-ease);
+}
+
+.allocation-list-scroll::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.allocation-list-scroll::-webkit-scrollbar-track,
+.allocation-list-scroll::-webkit-scrollbar-thumb,
+.allocation-list-scroll::-webkit-scrollbar-corner {
+  transition: background-color var(--theme-transition-duration) var(--theme-transition-ease);
+}
+
+.allocation-list-scroll::-webkit-scrollbar-track {
+  background-color: oklch(92.5% 0.024 96);
+  border-radius: 6px;
+}
+
+.allocation-list-scroll::-webkit-scrollbar-thumb {
+  background-color: oklch(78% 0.028 96);
+  border-radius: 6px;
+}
+
+.allocation-list-scroll::-webkit-scrollbar-corner {
+  background-color: oklch(92.5% 0.024 96);
+}
+
+.dark .allocation-list-scroll {
+  scrollbar-color: oklch(48% 0.018 264) oklch(28% 0.016 264);
+}
+
+.dark .allocation-list-scroll::-webkit-scrollbar-track {
+  background-color: oklch(28% 0.016 264);
+}
+
+.dark .allocation-list-scroll::-webkit-scrollbar-thumb {
+  background-color: oklch(48% 0.018 264);
+}
+
+.dark .allocation-list-scroll::-webkit-scrollbar-corner {
+  background-color: oklch(28% 0.016 264);
+}
+
+/**
+ * Session `<main>` — vertical scroll (table, allocation, performance). Default OS scrollbars read as bright
+ * on dark pages; match inner scroll regions above.
+ */
+.session-main-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: oklch(78% 0.028 96) oklch(94.2% 0.02 97);
+  transition: scrollbar-color var(--theme-transition-duration) var(--theme-transition-ease);
+}
+
+.session-main-scroll::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.session-main-scroll::-webkit-scrollbar-track,
+.session-main-scroll::-webkit-scrollbar-thumb,
+.session-main-scroll::-webkit-scrollbar-corner {
+  transition: background-color var(--theme-transition-duration) var(--theme-transition-ease);
+}
+
+.session-main-scroll::-webkit-scrollbar-track {
+  background-color: oklch(94.2% 0.02 97);
+  border-radius: 6px;
+}
+
+.session-main-scroll::-webkit-scrollbar-thumb {
+  background-color: oklch(78% 0.028 96);
+  border-radius: 6px;
+}
+
+.session-main-scroll::-webkit-scrollbar-corner {
+  background-color: oklch(94.2% 0.02 97);
+}
+
+.dark .session-main-scroll {
+  scrollbar-color: oklch(48% 0.018 264) oklch(21% 0.014 264);
+}
+
+.dark .session-main-scroll::-webkit-scrollbar-track {
+  background-color: oklch(21% 0.014 264);
+}
+
+.dark .session-main-scroll::-webkit-scrollbar-thumb {
+  background-color: oklch(48% 0.018 264);
+}
+
+.dark .session-main-scroll::-webkit-scrollbar-corner {
+  background-color: oklch(21% 0.014 264);
+}
+
+/** Fund sidebar: width collapse/expand at `md` and up (see `@theme --breakpoint-md`, 920px). */
+#fund-lookup-sidebar {
+  transition:
+    width var(--theme-transition-duration) var(--theme-transition-ease),
+    max-width var(--theme-transition-duration) var(--theme-transition-ease),
+    min-width var(--theme-transition-duration) var(--theme-transition-ease),
+    max-height var(--theme-transition-duration) var(--theme-transition-ease),
+    opacity var(--theme-transition-duration) var(--theme-transition-ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #fund-lookup-sidebar {
+    transition-duration: 1ms !important;
+  }
+}

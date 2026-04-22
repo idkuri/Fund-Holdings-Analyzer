@@ -4,6 +4,10 @@ import globals from 'globals'
 import reactPlugin from 'eslint-plugin-react'
 
 export default [
+  {
+    ignores: ['dist/**', 'node_modules/**', 'coverage/**'],
+  },
+
   js.configs.recommended, // includes ~50 essential rules
 
   {

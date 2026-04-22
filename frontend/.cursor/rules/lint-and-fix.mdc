@@ -1,0 +1,19 @@
+---
+description: After substantive edits, run ESLint from the frontend root and fix all reported issues.
+alwaysApply: true
+---
+
+# Lint before finishing
+
+When you change code in this project (especially before considering a task done):
+
+1. From the **frontend** directory (`frontend/`), run:
+
+   ```bash
+   npm run lint
+   ```
+
+2. **Resolve every error and warning** ESLint reports. Do not leave lint failures for the user.
+3. Re-run `npm run lint` until it exits cleanly (exit code 0).
+
+If lint fails due to environment issues, fix the configuration or dependencies; only skip if truly blocked and then say what blocked you.
