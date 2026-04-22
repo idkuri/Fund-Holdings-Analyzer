@@ -123,26 +123,29 @@ const DoughnutChart = ({ holdings, darkMode = false }) => {
     return () => window.removeEventListener('pointerdown', onWindowPointerDownCapture, true)
   }, [])
 
-  const { chartData, percentages, doughnutRotation } = useMemo(() => {
-    const totalValue = holdings.reduce((sum, item) => sum + item.value, 0)
-    const pct =
-      totalValue > 0
-        ? holdings.map((item) => (item.value / totalValue) * 100)
+  const { percentages } = useMemo(() => {
+    const nextTotalValue = holdings.reduce((sum, item) => sum + item.value, 0)
+    const nextPercentages =
+      nextTotalValue > 0
+        ? holdings.map((item) => (item.value / nextTotalValue) * 100)
         : holdings.map(() => 0)
+    return { percentages: nextPercentages }
+  }, [holdings])
 
+  const { chartData, doughnutRotation } = useMemo(() => {
     const q = searchTerm.trim().toLowerCase()
     const mergeOthers =
       selectedIndex !== null &&
       holdings.length > 1 &&
-      pct[selectedIndex] !== undefined &&
-      pct[selectedIndex] !== null
+      percentages[selectedIndex] !== undefined &&
+      percentages[selectedIndex] !== null
 
     const otherNeutral = darkMode ? OTHER_SLICE_DARK : OTHER_SLICE_LIGHT
 
     if (mergeOthers) {
       const sel = holdings[selectedIndex]
-      const selPct = pct[selectedIndex]
-      const otherPct = pct.reduce((sum, p, i) => (i === selectedIndex ? sum : sum + p), 0)
+      const selPct = percentages[selectedIndex]
+      const otherPct = percentages.reduce((sum, p, i) => (i === selectedIndex ? sum : sum + p), 0)
       const baseSel = COLORS[selectedIndex % COLORS.length]
       const selBg = baseSel
       const otherBg = otherNeutral
@@ -151,11 +154,10 @@ const DoughnutChart = ({ holdings, darkMode = false }) => {
 
       /** Keep the focused slice at the same angle as in the full pie (Chart.js uses degrees; first arc starts at rotation − 90°). */
       const cumDegBefore =
-        selectedIndex > 0 ? pct.slice(0, selectedIndex).reduce((s, p) => s + p, 0) : 0
+        selectedIndex > 0 ? percentages.slice(0, selectedIndex).reduce((s, p) => s + p, 0) : 0
       const rotation = (360 * cumDegBefore) / 100
 
       return {
-        percentages: pct,
         doughnutRotation: rotation,
         chartData: {
           labels: [sel.title, 'All other holdings'],
@@ -185,14 +187,13 @@ const DoughnutChart = ({ holdings, darkMode = false }) => {
     const offsets = holdings.map((_, i) => (selectedIndex === i ? SELECT_OFFSET : 0))
 
     return {
-      percentages: pct,
       doughnutRotation: 0,
       chartData: {
         labels,
         datasets: [
           {
             label: 'Percentage Allocation',
-            data: pct,
+            data: percentages,
             backgroundColor: backgrounds,
             borderWidth: 0,
             hoverBorderWidth: 0,
@@ -201,12 +202,11 @@ const DoughnutChart = ({ holdings, darkMode = false }) => {
         ],
       },
     }
-  }, [holdings, searchTerm, selectedIndex, darkMode])
+  }, [holdings, searchTerm, selectedIndex, darkMode, percentages])
 
   const filteredAllocationRows = useMemo(() => {
     const q = searchTerm.trim().toLowerCase()
-    const totalValue = holdings.reduce((sum, item) => sum + item.value, 0)
-    const pctAt = (i) => (totalValue > 0 ? (holdings[i].value / totalValue) * 100 : 0)
+    const pctAt = (i) => percentages[i] ?? 0
 
     let rows = holdings.map((item, i) => ({ item, index: i }))
     if (q) {
@@ -228,7 +228,7 @@ const DoughnutChart = ({ holdings, darkMode = false }) => {
     }
 
     return rows
-  }, [holdings, searchTerm, allocationSort])
+  }, [holdings, searchTerm, allocationSort, percentages])
 
   const options = useMemo(
     () => ({

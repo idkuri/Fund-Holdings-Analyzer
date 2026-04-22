@@ -18,7 +18,7 @@ export default function FundLookupSidebar({
       id="fund-lookup-sidebar"
       className={`ease-theme box-border flex min-h-0 shrink-0 flex-col border-[color:var(--lm-border)] bg-[var(--lm-row)] dark:border-gray-800 md:will-change-[width] max-md:will-change-[max-height,opacity] ${
         sidebarOpen
-          ? 'w-full min-w-0 max-w-full overflow-x-visible overflow-y-auto border-b max-md:max-h-[min(90vh,40rem)] max-md:min-h-0 max-md:opacity-100 md:max-w-72 md:min-w-0 md:h-full md:max-h-full md:w-72 md:shrink-0 md:self-stretch md:border-b-0 md:border-r md:opacity-100'
+          ? 'w-full min-w-0 max-w-full overflow-x-hidden border-b max-md:max-h-[min(90vh,40rem)] max-md:min-h-0 max-md:opacity-100 md:max-w-72 md:min-w-0 md:h-full md:max-h-full md:w-72 md:shrink-0 md:self-stretch md:border-b-0 md:border-r md:opacity-100'
           : 'max-md:pointer-events-none max-md:max-h-0 max-md:min-h-0 max-md:overflow-hidden max-md:border-b-0 max-md:opacity-0 md:pointer-events-none md:min-w-0 md:max-w-0 md:overflow-x-hidden md:overflow-y-hidden md:border-0 md:opacity-0'
       }${!sidebarOpen ? ' md:w-0' : ''}`}
       aria-label="Fund lookup"

@@ -24,7 +24,8 @@ def test_hello_world(client):
 @patch("server.getSortedNPortFilings")
 @patch("server.getNPortFile")
 @patch("server.getHoldingsfromXML")
-def test_get_cik_success(mock_holdings, mock_getfile, mock_sorted, client):
+@patch("server.getSubmissions")
+def test_get_cik_success(mock_get_submissions, mock_holdings, mock_getfile, mock_sorted, client):
     """Test /cik/<cik> returns holdings when everything works"""
     # Mocked return values
     mock_sorted.return_value = {
@@ -33,6 +34,7 @@ def test_get_cik_success(mock_holdings, mock_getfile, mock_sorted, client):
     }
     mock_getfile.return_value = "<xml>fake</xml>"
     mock_holdings.return_value = {"AAPL": {"title": "Apple", "value": 1000}}
+    mock_get_submissions.return_value = {"tickers": ["TST"]}
 
     resp = client.get("/cik/12345")
 
@@ -42,6 +44,8 @@ def test_get_cik_success(mock_holdings, mock_getfile, mock_sorted, client):
     assert data["fund_name"] == "Test Fund"
     assert len(data["data"]) == 1
     assert data["data"][0]["title"] == "Apple"
+    assert data["tickers"] == ["TST"]
+    assert data["ticker"] == "TST"
 
 
 @patch("server.getSortedNPortFilings")
@@ -71,6 +75,60 @@ def test_get_cik_unexpected_error(mock_sorted, client):
     assert resp.status_code == 500
     data = resp.get_json()
     assert "unexpected error" in data["error"].lower()
+
+
+@patch("server.getFundLookupTickerByCik", return_value="VTI")
+@patch("server.getSubmissions", return_value={"tickers": []})
+def test_get_ticker_falls_back_to_lookup(mock_get_submissions, mock_lookup_ticker, client):
+    """Test /ticker/<cik> falls back to lookup ticker when submissions has none."""
+    resp = client.get("/ticker/36405")
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["tickers"] == ["VTI"]
+    mock_get_submissions.assert_called_once()
+    mock_lookup_ticker.assert_called_once_with("0000036405")
+
+
+@patch("server.getFundLookupTickerByCik", return_value="VTI")
+@patch("server.getSubmissions", return_value={"tickers": []})
+@patch("server.getSortedNPortFilings")
+@patch("server.getNPortFile")
+@patch("server.getHoldingsfromXML")
+def test_get_cik_includes_ticker_fallback(
+    mock_holdings,
+    mock_getfile,
+    mock_sorted,
+    mock_get_submissions,
+    mock_lookup_ticker,
+    client,
+):
+    """Test /cik/<cik> includes fallback ticker fields in response payload."""
+    mock_sorted.return_value = {
+        "name": "Vanguard Index Funds",
+        "data": [("2025-08-01", "0000000000-25-000001")]
+    }
+    mock_getfile.return_value = "<xml>fake</xml>"
+    mock_holdings.return_value = {"AAPL": {"title": "Apple", "value": 1000}}
+
+    resp = client.get("/cik/36405")
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["tickers"] == ["VTI"]
+    assert data["ticker"] == "VTI"
+    mock_get_submissions.assert_called_once()
+    mock_lookup_ticker.assert_called_once_with("0000036405")
+
+
+@patch("server.getFundLookupTickerByCik", return_value="VTI")
+@patch("server.getSubmissions", return_value={"tickers": ["VXUS"]})
+def test_get_ticker_prefers_submissions_tickers(mock_get_submissions, mock_lookup_ticker, client):
+    """Test /ticker/<cik> uses submissions tickers when available."""
+    resp = client.get("/ticker/36405")
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["tickers"] == ["VXUS"]
+    mock_get_submissions.assert_called_once()
+    mock_lookup_ticker.assert_not_called()
 
 
 def test_delete_cache(tmp_path):

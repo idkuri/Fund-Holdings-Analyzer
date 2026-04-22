@@ -2,7 +2,14 @@ import re
 import requests
 from bs4 import BeautifulSoup
 from flask import Flask, request, jsonify, abort
-from utils.utils import getSortedNPortFilings, getNPortFile, getHoldingsfromXML, getSubmissions
+from utils.utils import (
+    getSortedNPortFilings,
+    getNPortFile,
+    getHoldingsfromXML,
+    getSubmissions,
+    getFundLookupTickerByCik,
+    searchFunds,
+)
 import logging
 from flask_cors import CORS
 import os
@@ -62,7 +69,19 @@ def get_cik(cik):
         holdings = getHoldingsfromXML(n_port_file_xml)
         logging.info("Holdings extracted from XML: %s", holdings)
 
-        return jsonify({"fund_name": fund_name, "data":list(holdings.values())})
+        submissions = getSubmissions(cik)
+        tickers = submissions.get('tickers', [])
+        if not tickers:
+            fallback_ticker = getFundLookupTickerByCik(cik)
+            if fallback_ticker:
+                tickers = [fallback_ticker]
+
+        return jsonify({
+            "fund_name": fund_name,
+            "data": list(holdings.values()),
+            "tickers": tickers,
+            "ticker": tickers[0] if tickers else None,
+        })
     
     except HTTPException as he:
         logging.error("HTTP error: %s", he.description)
@@ -82,6 +101,10 @@ def get_ticker(cik):
         cik = cik.zfill(10)
         submissions = getSubmissions(cik)
         tickers = submissions.get('tickers', [])
+        if not tickers:
+            fallback_ticker = getFundLookupTickerByCik(cik)
+            if fallback_ticker:
+                tickers = [fallback_ticker]
         return jsonify({"tickers": tickers})
     except HTTPException as he:
         logging.error("HTTP error fetching ticker for CIK %s: %s", cik, he.description)
@@ -122,6 +145,19 @@ def get_chart_data(ticker):
     except Exception as e:
         logging.error("Error fetching chart data for ticker %s: %s", ticker, e)
         return jsonify({"error": "Failed to fetch chart data"}), 500
+
+@app.route("/lookup", methods=['GET'])
+@limiter.limit("60 per minute")
+def lookup_funds():
+    try:
+        query = html.escape(request.args.get("q", ""))
+        if len(query.strip()) < 2:
+            return jsonify({"matches": []})
+        matches = searchFunds(query, limit=20)
+        return jsonify({"matches": matches})
+    except Exception as e:
+        logging.error("Error searching funds for query '%s': %s", query, e)
+        return jsonify({"error": "Failed to search funds"}), 500
 
 @atexit.register
 def delete_cache():

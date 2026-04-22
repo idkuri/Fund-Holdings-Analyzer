@@ -18,8 +18,8 @@ export default function LandingCard({
             Analyze Fund Holdings from N-Port Filings
           </h2>
           <p className="text-base leading-relaxed sm:text-[1.05rem]">
-            Enter a fund&apos;s Central Index Key (CIK) to retrieve and analyze its most recent
-            N-Port filing data, including detailed holdings information.
+            Search by fund name, ticker, or Central Index Key (CIK) to retrieve and analyze the most
+            recent N-Port filing data, including detailed holdings information.
           </p>
         </div>
       )}

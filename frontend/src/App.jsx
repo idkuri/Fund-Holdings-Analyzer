@@ -1,11 +1,11 @@
-import { useReducer, useMemo, useEffect, useRef, useCallback } from 'react'
+import { useReducer, useMemo, useEffect, useRef, useCallback, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useReactTable } from '@tanstack/react-table'
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import * as XLSX from 'xlsx'
 
-import { holdingsQueryOptions, tickerQueryOptions } from '@/api/nport'
+import { holdingsQueryOptions, tickerQueryOptions, fetchFundLookup } from '@/api/nport'
 import { formatRowForPdf } from '@/utils/format'
 import {
   holdingsColumns,
@@ -38,6 +38,9 @@ function App() {
     sidebarOpen,
   } = state
   const exportMenuRef = useRef(null)
+  const skipNextHistoryAddRef = useRef(false)
+  const [lookupInputError, setLookupInputError] = useState(null)
+  const [lookupTickerFallback, setLookupTickerFallback] = useState(null)
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDark)
@@ -81,6 +84,10 @@ function App() {
     if (!submittedCik || !isSuccess || isFetching || !data) {
       return
     }
+    if (skipNextHistoryAddRef.current) {
+      skipNextHistoryAddRef.current = false
+      return
+    }
     addSearchToHistory({ cik: submittedCik, fundName: data.fundName ?? '' })
   }, [submittedCik, data, isSuccess, isFetching, addSearchToHistory])
 
@@ -89,7 +96,9 @@ function App() {
     enabled: !!submittedCik,
   })
 
-  const ticker = tickerData?.tickers?.[0] ?? null
+  const fallbackTickerForSubmittedCik =
+    lookupTickerFallback?.cik === submittedCik ? lookupTickerFallback.ticker : null
+  const ticker = tickerData?.tickers?.[0] ?? fallbackTickerForSubmittedCik ?? null
 
   const holdings = useMemo(() => data?.holdings ?? [], [data])
   const fundName = useMemo(() => data?.fundName ?? '', [data])
@@ -193,14 +202,61 @@ function App() {
 
   const applyHistoryCik = useCallback(
     (historyCik) => {
+      setLookupInputError(null)
+      setLookupTickerFallback(null)
+      skipNextHistoryAddRef.current = true
       dispatch({ type: 'APPLY_HISTORY_CIK', payload: historyCik })
     },
     [dispatch]
   )
 
-  const submitCikLookup = useCallback(() => {
-    dispatch({ type: 'SUBMIT_CIK_LOOKUP' })
-  }, [dispatch])
+  const submitCikLookup = useCallback(
+    async (inputOverride) => {
+      const rawInput = String(inputOverride ?? cik ?? '').trim()
+      if (!rawInput) {
+        return
+      }
+
+      setLookupInputError(null)
+      const digits = rawInput.replace(/\D/g, '')
+      const isNumericInput = digits.length > 0 && digits.length === rawInput.length
+      if (isNumericInput) {
+        const normalized = digits.slice(0, 10).padStart(10, '0')
+        setLookupTickerFallback(null)
+        dispatch({ type: 'SET_CIK', payload: normalized })
+        dispatch({ type: 'SET_SUBMITTED_CIK', payload: normalized })
+        return
+      }
+
+      try {
+        const matches = await fetchFundLookup(rawInput)
+        if (!matches.length) {
+          setLookupInputError(
+            new Error('No funds matched that search. Try another name or ticker.')
+          )
+          return
+        }
+        const resolvedCik = String(matches[0].cik ?? '').trim()
+        const resolvedTicker = String(matches[0].ticker ?? '')
+          .trim()
+          .toUpperCase()
+        if (!resolvedCik) {
+          setLookupInputError(new Error('Could not resolve a CIK for that search.'))
+          return
+        }
+        setLookupTickerFallback(
+          resolvedTicker ? { cik: resolvedCik, ticker: resolvedTicker } : null
+        )
+        dispatch({ type: 'SET_CIK', payload: resolvedCik })
+        dispatch({ type: 'SET_SUBMITTED_CIK', payload: resolvedCik })
+      } catch (e) {
+        setLookupInputError(
+          new Error(e instanceof Error ? e.message : 'Fund lookup failed. Please try again.')
+        )
+      }
+    },
+    [cik, dispatch]
+  )
 
   const hasActiveSession = Boolean(submittedCik)
   const viewModeOptions = useMemo(
@@ -212,6 +268,7 @@ function App() {
     if (isExporting) {
       return
     }
+    setLookupInputError(null)
     dispatch({ type: 'CLEAR_SESSION' })
   }, [isExporting, dispatch])
 
@@ -236,10 +293,13 @@ function App() {
             <LandingCard
               showHero={!hasResultPanelData}
               cik={cik}
-              onCikChange={(value) => dispatch({ type: 'SET_CIK', payload: value })}
+              onCikChange={(value) => {
+                setLookupInputError(null)
+                dispatch({ type: 'SET_CIK', payload: value })
+              }}
               onSubmitCik={submitCikLookup}
               isLoading={isLoading}
-              lookupError={error}
+              lookupError={lookupInputError ?? error}
               onSelectHistoryCik={applyHistoryCik}
             />
           </div>
@@ -252,10 +312,13 @@ function App() {
             sidebarOpen={sidebarOpen}
             onClose={() => dispatch({ type: 'SET_SIDEBAR_OPEN', payload: false })}
             cik={cik}
-            onCikChange={(value) => dispatch({ type: 'SET_CIK', payload: value })}
+            onCikChange={(value) => {
+              setLookupInputError(null)
+              dispatch({ type: 'SET_CIK', payload: value })
+            }}
             onSubmitCik={submitCikLookup}
             isLoading={isLoading}
-            lookupError={error}
+            lookupError={lookupInputError ?? error}
             onSelectHistoryCik={applyHistoryCik}
             onClearSession={clearSession}
             isExporting={isExporting}
@@ -268,7 +331,7 @@ function App() {
               isDark={isDark}
               onToggleDark={() => dispatch({ type: 'TOGGLE_DARK' })}
             />
-            <main className="ease-theme session-main-scroll flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto overflow-x-hidden">
+            <main className="ease-theme session-main-scroll mt-5 flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto overflow-x-hidden">
               {isLoading && !fundName && (
                 <div className="mx-auto flex max-w-2xl items-center justify-center gap-2 py-16 text-sm text-stone-500 dark:text-gray-500">
                   <Spinner />

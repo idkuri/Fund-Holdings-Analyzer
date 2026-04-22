@@ -1,5 +1,18 @@
 import { useSearchHistoryStore } from '@/stores/searchHistoryStore'
 
+const SEARCHED_AT_FORMATTER = (() => {
+  try {
+    return new Intl.DateTimeFormat(undefined, {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    })
+  } catch {
+    return null
+  }
+})()
+
 export function HistoryIcon({ className }) {
   return (
     <svg
@@ -20,12 +33,7 @@ export function HistoryIcon({ className }) {
 
 function formatSearchedAt(ts) {
   try {
-    return new Intl.DateTimeFormat(undefined, {
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    }).format(ts)
+    return SEARCHED_AT_FORMATTER ? SEARCHED_AT_FORMATTER.format(ts) : ''
   } catch {
     return ''
   }
@@ -107,7 +115,7 @@ export default function SearchHistory({ onSelectCik, variant = 'default' }) {
       )}
       <ul
         className={`ease-theme allocation-list-scroll flex flex-col gap-2 rounded-lg border border-[color:var(--lm-border)] bg-[var(--lm-input)] p-1.5 dark:border-gray-700 dark:bg-gray-950/80 ${
-          isSidebar ? 'min-h-0 flex-1 overflow-y-auto' : 'overflow-y-auto'
+          isSidebar ? 'min-h-0 flex-1 overflow-visible' : 'overflow-y-auto'
         }`}
         style={isSidebar ? undefined : { maxHeight: listMaxHeightLanding }}
       >
@@ -120,7 +128,7 @@ export default function SearchHistory({ onSelectCik, variant = 'default' }) {
                 className="ease-theme flex min-w-0 flex-1 flex-col items-start gap-0.5 px-2 py-2 text-left text-sm"
               >
                 <span
-                  className="truncate font-medium text-stone-900 dark:text-gray-100"
+                  className="whitespace-normal break-words font-medium text-stone-900 dark:text-gray-100"
                   title={e.fundName || undefined}
                 >
                   {e.fundName || 'Fund (name unavailable)'}
