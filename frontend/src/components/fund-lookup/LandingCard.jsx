@@ -11,7 +11,7 @@ export default function LandingCard({
   onSelectHistoryCik,
 }) {
   return (
-    <div className="ease-theme flex w-full max-w-4xl min-w-0 shrink-0 flex-col gap-6 rounded-xl border border-[color:var(--lm-border)] bg-[var(--lm-card)] p-8 shadow-sm shadow-stone-900/10 dark:border-gray-700 dark:bg-gray-900 dark:shadow-none sm:gap-8 sm:p-10">
+    <div className="ease-theme flex min-h-full w-[75vw] min-w-[500px] max-w-none shrink-0 flex-col gap-6 rounded-xl border border-[color:var(--lm-border)] bg-[var(--lm-card)] p-8 shadow-sm shadow-stone-900/10 dark:border-gray-700 dark:bg-gray-900 dark:shadow-none sm:gap-8 sm:p-10">
       {showHero && (
         <div className="nport-hero ease-theme rounded-xl p-4 transition-shadow duration-[var(--theme-transition-duration)] ease-[var(--theme-transition-ease)] sm:p-5">
           <h2 className="mb-2 text-xl font-semibold sm:text-2xl">

@@ -20,7 +20,7 @@ export default function AppHeader({
             'radial-gradient(circle at 20% 20%, white 0%, transparent 45%), radial-gradient(circle at 80% 80%, rgb(147 197 253) 0%, transparent 40%)',
         }}
       />
-      <div className="relative flex h-12 w-13 items-center justify-center rounded-lg bg-white/10 ring-1 ring-white/20 backdrop-blur-sm sm:h-12 sm:w-13 sm:rounded-xl">
+      <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-lg sm:h-11 sm:w-11 sm:rounded-xl">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
@@ -29,7 +29,7 @@ export default function AppHeader({
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="h-[1.5rem] w-[1.5rem] text-white sm:h-6 sm:w-6"
+          className="h-full w-full text-white"
           aria-hidden
         >
           <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
